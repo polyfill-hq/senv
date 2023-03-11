@@ -195,7 +195,8 @@ function encryptEnvFile(inputFile, outputFile, password) {
     const EOL = getLineBreakChar(inputStr);
     const envLines = parseEnv(inputStr, EOL);
 
-    const salt = crypto.randomBytes(16).toString("hex");
+    // const salt = crypto.randomBytes(16).toString("hex");
+    const salt = createHmac(JSON.stringify(envLines), password).slice(0, 32);
     const key = crypto.pbkdf2Sync(
         password,
         salt,
