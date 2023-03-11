@@ -1,20 +1,22 @@
 const senv = require("../index");
 const crypto = require("crypto");
-const envfile = require("envfile");
-const { writeFile, remove, exists } = require("fs");
+const { writeFileSync, rmSync, existsSync } = require("fs");
 
-const TMPDIR = process.env.TMPDIR;
+const TMPDIR = "";
 
 const EXAMPLE_ENV_FILE = `
+# test comment
 ENV_VAR=123
+
+ # test comment 2
 ENV_VAR_2=abc
 `.trim();
 
-test("encrypts/decrypts string successfully", async () => {
+test("encrypts/decrypts string successfully", () => {
     const testString = "Hello world!";
     const testPassword = "password";
     const iv = crypto.randomBytes(16);
-    const encryptedString = await senv.encryptString(
+    const encryptedString = senv.encryptString(
         testString,
         testPassword,
         iv
@@ -23,12 +25,12 @@ test("encrypts/decrypts string successfully", async () => {
     expect(encryptedString).not.toBe(testString);
     expect(encryptedString).not.toBeNull();
 
-    expect(await senv.decryptString(encryptedString, testPassword, iv)).toBe(
+    expect(senv.decryptString(encryptedString, testPassword, iv)).toBe(
         testString
     );
 });
 
-test("gets individual .env file password from env var", async () => {
+test("gets individual .env file password from env var", () => {
     const password = "password";
     process.env.DOTENV_PROD_PASS = password;
 
@@ -41,10 +43,10 @@ test("gets individual .env file password from env var", async () => {
     delete process.env.DOTENV_PROD_PASS;
 });
 
-test("gets individual .env file password from password file", async () => {
+test("gets individual .env file password from password file", () => {
     const password = "password";
     const path = ".env.prod.pass";
-    writeFile(path, password);
+    writeFileSync(path, password);
 
     expect(senv.getPasswordFromEnvironment(".env.prod")).toBe(password);
     expect(senv.getPasswordFromEnvironment(".env.prod.enc")).toBe(password);
@@ -52,10 +54,10 @@ test("gets individual .env file password from password file", async () => {
         password
     );
 
-    remove(path);
+    rmSync(path);
 });
 
-test("gets global .env file password from env var", async () => {
+test("gets global .env file password from env var", () => {
     const password = "password";
     process.env.DOTENV_PASS = password;
 
@@ -68,10 +70,10 @@ test("gets global .env file password from env var", async () => {
     delete process.env.DOTENV_PASS;
 });
 
-test("gets global .env file password from password file", async () => {
+test("gets global .env file password from password file", () => {
     const password = "password";
     const path = ".env.pass";
-    writeFile(path, password);
+    writeFileSync(path, password);
 
     expect(senv.getPasswordFromEnvironment(".env.prod")).toBe(password);
     expect(senv.getPasswordFromEnvironment(".env.prod.enc")).toBe(password);
@@ -79,80 +81,83 @@ test("gets global .env file password from password file", async () => {
         password
     );
 
-    remove(path);
+    rmSync(path);
 });
 
 test("encrypting env file fails without password", () => {
-    expect(senv.encryptEnvFile("path", undefined)).rejects.toThrow("password");
-    expect(senv.encryptEnvFile("path", null)).rejects.toThrow("password");
-    expect(senv.encryptEnvFile("path", "")).rejects.toThrow("password");
+    expect(() => senv.encryptEnvFile("path", undefined)).toThrow();
+    expect(() => senv.encryptEnvFile("path", null)).toThrow(
+        "No password provided."
+    );
+    expect(() => senv.encryptEnvFile("path", "")).toThrow("password");
 });
 
 test("decrypting env file fails without password", () => {
-    expect(senv.decryptEnvFile("path", undefined)).rejects.toThrow("password");
-    expect(senv.decryptEnvFile("path", null)).rejects.toThrow("password");
-    expect(senv.decryptEnvFile("path", "")).rejects.toThrow("password");
+    expect(() => senv.decryptEnvFile("path", undefined)).toThrow("password");
+    expect(() => senv.decryptEnvFile("path", null)).toThrow("password");
+    expect(() => senv.decryptEnvFile("path", "")).toThrow("password");
 });
 
-test("encrypted env file is written successfully", async () => {
+test("encrypted env file is written successfully", () => {
     const path = `${TMPDIR}.env.test1`;
     const encryptedEnvPath = `${TMPDIR}.env.enc.test1`;
 
-    writeFile(path, EXAMPLE_ENV_FILE);
+    writeFileSync(path, EXAMPLE_ENV_FILE);
 
-    await senv.encryptEnvFile(path, encryptedEnvPath, "password");
+    senv.encryptEnvFile(path, encryptedEnvPath, "password");
 
-    expect(exists(encryptedEnvPath)).toBeTruthy();
+    expect(existsSync(encryptedEnvPath)).toBeTruthy();
 
-    remove(path);
-    remove(encryptedEnvPath);
+    rmSync(path);
+    rmSync(encryptedEnvPath);
 });
 
-test("encrypted env file has correct variables", async () => {
+test("encrypted env file has correct variables", () => {
     const path = `${TMPDIR}.env.test1`;
-    writeFile(path, EXAMPLE_ENV_FILE);
+    writeFileSync(path, EXAMPLE_ENV_FILE);
 
-    const encryptedEnvFile = await senv.encryptEnvFile(path, null, "password");
+    const encryptedEnvFile = senv.encryptEnvFile(path, null, "password");
 
     expect(encryptedEnvFile).toContain("ENV_VAR");
     expect(encryptedEnvFile).toContain("ENV_VAR_2");
 
-    remove(path);
+    rmSync(path);
 });
 
-test("encrypted env file variable values have changed", async () => {
+test("encrypted env file variable values have changed", () => {
     const path = `${TMPDIR}.env.test2`;
-    writeFile(path, EXAMPLE_ENV_FILE);
+    writeFileSync(path, EXAMPLE_ENV_FILE);
 
-    const encryptedEnvFile = await senv.encryptEnvFile(path, null, "password");
+    const encryptedEnvFile = senv.encryptEnvFile(path, null, "password");
 
     expect(encryptedEnvFile).not.toEqual(EXAMPLE_ENV_FILE);
 
-    remove(path);
+    rmSync(path);
 });
 
-test("decrypted env file is written successfully", async () => {
+test("decrypted env file is written successfully", () => {
     const path = `${TMPDIR}.env.test1`;
     const encryptedEnvPath = `${TMPDIR}.env.enc.test1`;
 
-    writeFile(path, EXAMPLE_ENV_FILE);
+    writeFileSync(path, EXAMPLE_ENV_FILE);
 
-    await senv.encryptEnvFile(path, encryptedEnvPath, "password");
-    remove(path);
+    senv.encryptEnvFile(path, encryptedEnvPath, "password");
+    rmSync(path);
 
-    await senv.decryptEnvFile(encryptedEnvPath, path, "password");
-    expect(exists(path)).toBeTruthy();
+    senv.decryptEnvFile(encryptedEnvPath, path, "password");
+    expect(existsSync(path)).toBeTruthy();
 
-    remove(encryptedEnvPath);
+    rmSync(path);
+    rmSync(encryptedEnvPath);
 });
 
-test("decrypted env file has correct variables", async () => {
+test("decrypted env file has correct variables", () => {
     const envVarPath = `${TMPDIR}.env.test3`;
     const encryptedEnvVarPath = `${TMPDIR}.env.enc.test3`;
-    writeFile(envVarPath, EXAMPLE_ENV_FILE);
+    writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
-    await senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
-    const decryptedEnvFile = await senv.decryptEnvFile(
+    senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
+    const decryptedEnvFile = senv.decryptEnvFile(
         encryptedEnvVarPath,
         null,
         "password"
@@ -161,38 +166,60 @@ test("decrypted env file has correct variables", async () => {
     expect(decryptedEnvFile.trim()).toContain("ENV_VAR");
     expect(decryptedEnvFile.trim()).toContain("ENV_VAR_2");
 
-    remove(envVarPath);
-    remove(encryptedEnvVarPath);
+    rmSync(envVarPath);
+    rmSync(encryptedEnvVarPath);
 });
 
-test("decrypted env file variables are correct", async () => {
+test("decrypted env file variables are correct", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
     const encryptedEnvVarPath = `${TMPDIR}.env.enc.test4`;
-    writeFile(envVarPath, EXAMPLE_ENV_FILE);
+    writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
-    await senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
-    const decryptedEnvFile = await senv.decryptEnvFile(
+    senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
+    const decryptedEnvFile = senv.decryptEnvFile(
         encryptedEnvVarPath,
-        null,
+        "",
         "password"
     );
 
     expect(decryptedEnvFile.trim()).toEqual(EXAMPLE_ENV_FILE.trim());
 
-    remove(envVarPath);
-    remove(encryptedEnvVarPath);
+    rmSync(envVarPath);
+    rmSync(encryptedEnvVarPath);
 });
 
-test("decrypting env throws error when password is incorrect", async () => {
+test("decrypting env throws error when password is incorrect", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
     const encryptedEnvVarPath = `${TMPDIR}.env.enc.test4`;
-    writeFile(envVarPath, EXAMPLE_ENV_FILE);
+    writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
-    await senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
+    senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
     expect(
-        senv.decryptEnvFile(encryptedEnvVarPath, null, "wrongpassword")
-    ).rejects.toThrow("Incorrect password");
+        () => senv.decryptEnvFile(encryptedEnvVarPath, null, "wrongpassword")
+    ).toThrow("Incorrect password provided.");
 
-    remove(envVarPath);
-    remove(encryptedEnvVarPath);
+    rmSync(envVarPath);
+    rmSync(encryptedEnvVarPath);
+});
+
+test("decrypting env throws error when salt cannot be found", () => {
+    const envVarPath = `${TMPDIR}.env.test4`;
+    writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
+
+    expect(
+        () => senv.decryptEnvFile(envVarPath, null, "password")
+    ).toThrow("Could not find SENV_SALT in encrypted file.");
+
+    rmSync(envVarPath);
+});
+
+test("decrypting env throws error when HMAC cannot be found", () => {
+    const envVarPath = `${TMPDIR}.env.test4`;
+    writeFileSync(envVarPath, EXAMPLE_ENV_FILE + "\nSENV_SALT=1234");
+
+    expect(
+        () => senv.decryptEnvFile(envVarPath, null, "password")
+    ).toThrow("Could not find SENV_AUTHENTICATION in encrypted file.");
+
+    rmSync(envVarPath);
 });
