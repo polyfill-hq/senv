@@ -16,11 +16,7 @@ test("encrypts/decrypts string successfully", () => {
     const testString = "Hello world!";
     const testPassword = "password";
     const iv = crypto.randomBytes(16);
-    const encryptedString = senv.encryptString(
-        testString,
-        testPassword,
-        iv
-    );
+    const encryptedString = senv.encryptString(testString, testPassword, iv);
 
     expect(encryptedString).not.toBe(testString);
     expect(encryptedString).not.toBeNull();
@@ -112,11 +108,25 @@ test("encrypted env file is written successfully", () => {
     rmSync(encryptedEnvPath);
 });
 
+test("encrypted env file is written successfully, when output path is not provided", () => {
+    const path = `${TMPDIR}.env.test1`;
+    const encryptedEnvPath = `${TMPDIR}.env.test1.enc`;
+
+    writeFileSync(path, EXAMPLE_ENV_FILE);
+
+    senv.encryptEnvFile(path, undefined, "password");
+
+    expect(existsSync(encryptedEnvPath)).toBeTruthy();
+
+    rmSync(path);
+    rmSync(encryptedEnvPath);
+});
+
 test("encrypted env file has correct variables", () => {
     const path = `${TMPDIR}.env.test1`;
     writeFileSync(path, EXAMPLE_ENV_FILE);
 
-    const encryptedEnvFile = senv.encryptEnvFile(path, null, "password");
+    const encryptedEnvFile = senv.encryptEnvFile(path, null, "password", true);
 
     expect(encryptedEnvFile).toContain("ENV_VAR");
     expect(encryptedEnvFile).toContain("ENV_VAR_2");
@@ -128,7 +138,7 @@ test("encrypted env file variable values have changed", () => {
     const path = `${TMPDIR}.env.test2`;
     writeFileSync(path, EXAMPLE_ENV_FILE);
 
-    const encryptedEnvFile = senv.encryptEnvFile(path, null, "password");
+    const encryptedEnvFile = senv.encryptEnvFile(path, null, "password", true);
 
     expect(encryptedEnvFile).not.toEqual(EXAMPLE_ENV_FILE);
 
@@ -151,6 +161,22 @@ test("decrypted env file is written successfully", () => {
     rmSync(encryptedEnvPath);
 });
 
+test("decrypted env file is written successfully, when output path is not provided", () => {
+    const path = `${TMPDIR}.env.test1`;
+    const encryptedEnvPath = `${TMPDIR}.env.test1.enc`;
+
+    writeFileSync(path, EXAMPLE_ENV_FILE);
+
+    senv.encryptEnvFile(path, encryptedEnvPath, "password");
+    rmSync(path);
+
+    senv.decryptEnvFile(encryptedEnvPath, undefined, "password");
+    expect(existsSync(path)).toBeTruthy();
+
+    rmSync(path);
+    rmSync(encryptedEnvPath);
+});
+
 test("decrypted env file has correct variables", () => {
     const envVarPath = `${TMPDIR}.env.test3`;
     const encryptedEnvVarPath = `${TMPDIR}.env.enc.test3`;
@@ -160,7 +186,8 @@ test("decrypted env file has correct variables", () => {
     const decryptedEnvFile = senv.decryptEnvFile(
         encryptedEnvVarPath,
         null,
-        "password"
+        "password",
+        true
     );
 
     expect(decryptedEnvFile.trim()).toContain("ENV_VAR");
@@ -179,7 +206,8 @@ test("decrypted env file variables are correct", () => {
     const decryptedEnvFile = senv.decryptEnvFile(
         encryptedEnvVarPath,
         "",
-        "password"
+        "password",
+        true
     );
 
     expect(decryptedEnvFile.trim()).toEqual(EXAMPLE_ENV_FILE.trim());
@@ -194,8 +222,8 @@ test("decrypting env throws error when password is incorrect", () => {
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
     senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
-    expect(
-        () => senv.decryptEnvFile(encryptedEnvVarPath, null, "wrongpassword")
+    expect(() =>
+        senv.decryptEnvFile(encryptedEnvVarPath, null, "wrongpassword")
     ).toThrow("Incorrect password provided.");
 
     rmSync(envVarPath);
@@ -206,9 +234,9 @@ test("decrypting env throws error when salt cannot be found", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
-    expect(
-        () => senv.decryptEnvFile(envVarPath, null, "password")
-    ).toThrow("Could not find SENV_SALT in encrypted file.");
+    expect(() => senv.decryptEnvFile(envVarPath, null, "password")).toThrow(
+        "Could not find SENV_SALT in encrypted file."
+    );
 
     rmSync(envVarPath);
 });
@@ -217,9 +245,9 @@ test("decrypting env throws error when HMAC cannot be found", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE + "\nSENV_SALT=1234");
 
-    expect(
-        () => senv.decryptEnvFile(envVarPath, null, "password")
-    ).toThrow("Could not find SENV_AUTHENTICATION in encrypted file.");
+    expect(() => senv.decryptEnvFile(envVarPath, null, "password")).toThrow(
+        "Could not find SENV_AUTHENTICATION in encrypted file."
+    );
 
     rmSync(envVarPath);
 });

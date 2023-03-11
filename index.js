@@ -40,7 +40,7 @@ function stringifyEnv(lines, EOL) {
     lines.forEach(([key, value], idx) => {
         const line =
             typeof value === "undefined" ? key : `${key}=${String(value)}`;
-        result += line + (idx !== lines.length -1 ? EOL : "");
+        result += line + (idx !== lines.length - 1 ? EOL : "");
     });
     return result;
 }
@@ -50,13 +50,13 @@ function stringifyEnv(lines, EOL) {
  * @param string
  */
 function getLineBreakChar(string) {
-    const indexOfLF = string.indexOf('\n', 1);
+    const indexOfLF = string.indexOf("\n", 1);
     if (indexOfLF === -1) {
-        if (string.indexOf('\r') !== -1) return '\r'
-        return '\n'
+        if (string.indexOf("\r") !== -1) return "\r";
+        return "\n";
     }
-    if (string[indexOfLF - 1] === '\r') return '\r\n'
-    return '\n'
+    if (string[indexOfLF - 1] === "\r") return "\r\n";
+    return "\n";
 }
 
 /**
@@ -180,13 +180,19 @@ function getPasswordFromEnvironment(fileName) {
 /**
  * Encrypts a .env file and writes it to disk.
  * @param {string} inputFile    - File path to plain text .env file to encrypt.
- * @param {string} outputFile   - File path to write encrypted .env file to.
+ * @param {string=} outputFile   - File path to write encrypted .env file to. (default: <inputFile>.enc)
  * @param {string} password     - The password with which to encrypt the .env file.
+ * @param {boolean=} returnContent - Return encrypted .env content as a string.
  *
- * @return {string}            - If outputFile is undefined, encrypted .env contents will be
- *                               returned as a string. Otherwise returns success message.
+ * @return {string}            - If returnContent is true, encrypted .env content will be
+ *                               returned as a string, otherwise returns success message.
  */
-function encryptEnvFile(inputFile, outputFile, password) {
+function encryptEnvFile(
+    inputFile,
+    outputFile = inputFile + ".enc",
+    password,
+    returnContent = false
+) {
     if (!password) {
         password = getPasswordFromEnvironment(inputFile);
     }
@@ -227,24 +233,31 @@ function encryptEnvFile(inputFile, outputFile, password) {
 
     const encryptedEnvVariables = stringifyEnv(encryptedEnvLines, EOL);
 
-    if (outputFile) {
-        writeFileSync(outputFile, encryptedEnvVariables);
-        return `Encrypted file successfully written to ${outputFile}`;
-    } else {
+    if (outputFile) writeFileSync(outputFile, encryptedEnvVariables);
+
+    if (returnContent) {
         return encryptedEnvVariables;
+    } else {
+        return `Encrypted file successfully written to ${outputFile}`;
     }
 }
 
 /**
  * Decrypts a .env file and writes it to disk.
  * @param {string} inputFile    - Path to encrypted .env file to decrypt.
- * @param {string} outputFile   - Path to write decrypted .env file to.
+ * @param {string=} outputFile   - Path to write decrypted .env file to. (default: <inputFile> without .enc)
  * @param {string} password     - The password with which to decrypt the .env file.
+ * @param {boolean=} returnContent - Return decrypted .env content as a string.
  *
- * @return {string}            - If outputFile is undefined, encrypted .env contents will be
- *                               returned as a string. Otherwise returns success message.
+ * @return {string}            - If returnContent is true, decrypted .env content will be
+ *                               returned as a string, otherwise returns success message.
  */
-function decryptEnvFile(inputFile, outputFile, password) {
+function decryptEnvFile(
+    inputFile,
+    outputFile = inputFile.slice(0, -4),
+    password,
+    returnContent = false
+) {
     if (!password) {
         password = getPasswordFromEnvironment(inputFile);
     }
@@ -254,7 +267,9 @@ function decryptEnvFile(inputFile, outputFile, password) {
     const envLines = parseEnv(inputStr, EOL);
     const saltLine = envLines.find((line) => line[0] === AUTHENTICATION_SALT);
     if (!saltLine || !saltLine[1]) {
-        throw new Error(`Could not find ${AUTHENTICATION_SALT} in encrypted file.`);
+        throw new Error(
+            `Could not find ${AUTHENTICATION_SALT} in encrypted file.`
+        );
     }
     const salt = saltLine[1];
     const key = crypto.pbkdf2Sync(
@@ -267,7 +282,9 @@ function decryptEnvFile(inputFile, outputFile, password) {
 
     const hmacLine = envLines.find((line) => line[0] === AUTHENTICATION_KEY);
     if (!hmacLine || !hmacLine[1]) {
-        throw new Error(`Could not find ${AUTHENTICATION_KEY} in encrypted file.`);
+        throw new Error(
+            `Could not find ${AUTHENTICATION_KEY} in encrypted file.`
+        );
     }
     const hmac = hmacLine[1];
     // 32 because hex. (16 bytes)
@@ -275,10 +292,13 @@ function decryptEnvFile(inputFile, outputFile, password) {
 
     const decryptedEnvLines = [];
     for (const [variableName, value] of envLines) {
-        if(variableName === AUTHENTICATION_SALT || variableName === AUTHENTICATION_KEY) {
+        if (
+            variableName === AUTHENTICATION_SALT ||
+            variableName === AUTHENTICATION_KEY
+        ) {
             continue;
         }
-        if(typeof value !== "undefined") {
+        if (typeof value !== "undefined") {
             decryptedEnvLines.push([
                 variableName,
                 decryptString(value, key, iv, variableName),
@@ -288,18 +308,22 @@ function decryptEnvFile(inputFile, outputFile, password) {
         }
     }
 
-    const calculatedHmac = createHmac(JSON.stringify(decryptedEnvLines), key.toString());
+    const calculatedHmac = createHmac(
+        JSON.stringify(decryptedEnvLines),
+        key.toString()
+    );
     if (hmac !== calculatedHmac) {
         throw new Error("Incorrect password provided.");
     }
 
     const decryptedEnvVariables = stringifyEnv(decryptedEnvLines, EOL);
 
-    if (outputFile) {
-        writeFileSync(outputFile, decryptedEnvVariables);
-        return `Decrypted file successfully written to ${outputFile}`;
-    } else {
+    if (outputFile) writeFileSync(outputFile, decryptedEnvVariables);
+
+    if (returnContent) {
         return decryptedEnvVariables;
+    } else {
+        return `Decrypted file successfully written to ${outputFile}`;
     }
 }
 
