@@ -1,5 +1,5 @@
 {
-  "name": "senv",
+  "name": "@ens-vision-pte-ltd/senv",
   "version": "2.0.2",
   "description": "A simple CLI tool for encrypting and decrypting .env files",
   "main": "index.js",
