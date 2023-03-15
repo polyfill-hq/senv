@@ -1,12 +1,14 @@
 {
   "name": "senv",
-  "version": "1.0.2",
+  "version": "2.0.2",
   "description": "A simple CLI tool for encrypting and decrypting .env files",
   "main": "index.js",
-  "repository": "https://github.com/jaydenwindle/senv",
-  "author": "Jayden Windle",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@ens-vision-pte-ltd"
+  },
+  "repository": "https://github.com/ENS-Vision-PTE-LTD/senv",
+  "author": "Octexor",
   "license": "MIT",
-  "preferGlobal": true,
   "bin": "./bin/senv",
   "scripts": {
     "test": "jest .",
