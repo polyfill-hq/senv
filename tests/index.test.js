@@ -96,7 +96,7 @@ test("decrypting env file fails without password", () => {
 
 test("encrypted env file is written successfully", () => {
     const path = `${TMPDIR}.env.test1`;
-    const encryptedEnvPath = `${TMPDIR}.env.enc.test1`;
+    const encryptedEnvPath = `${TMPDIR}.env.test1.enc`;
 
     writeFileSync(path, EXAMPLE_ENV_FILE);
 
@@ -147,7 +147,7 @@ test("encrypted env file variable values have changed", () => {
 
 test("decrypted env file is written successfully", () => {
     const path = `${TMPDIR}.env.test1`;
-    const encryptedEnvPath = `${TMPDIR}.env.enc.test1`;
+    const encryptedEnvPath = `${TMPDIR}.env.test1.enc`;
 
     writeFileSync(path, EXAMPLE_ENV_FILE);
 
@@ -179,7 +179,7 @@ test("decrypted env file is written successfully, when output path is not provid
 
 test("decrypted env file has correct variables", () => {
     const envVarPath = `${TMPDIR}.env.test3`;
-    const encryptedEnvVarPath = `${TMPDIR}.env.enc.test3`;
+    const encryptedEnvVarPath = `${TMPDIR}.env.test3.enc`;
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
     senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
@@ -199,7 +199,7 @@ test("decrypted env file has correct variables", () => {
 
 test("decrypted env file variables are correct", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
-    const encryptedEnvVarPath = `${TMPDIR}.env.enc.test4`;
+    const encryptedEnvVarPath = `${TMPDIR}.env.test4.enc`;
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
     senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
@@ -218,7 +218,7 @@ test("decrypted env file variables are correct", () => {
 
 test("decrypting env throws error when password is incorrect", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
-    const encryptedEnvVarPath = `${TMPDIR}.env.enc.test4`;
+    const encryptedEnvVarPath = `${TMPDIR}.env.test4.enc`;
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
     senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");

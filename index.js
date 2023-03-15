@@ -202,7 +202,7 @@ function encryptEnvFile(
     const envLines = parseEnv(inputStr, EOL);
 
     // const salt = crypto.randomBytes(16).toString("hex");
-    const salt = createHmac(JSON.stringify(envLines), password).slice(0, 32);
+    const salt = createHmac(inputFile, password).slice(0, 32);
     const key = crypto.pbkdf2Sync(
         password,
         salt,
@@ -211,7 +211,8 @@ function encryptEnvFile(
         "sha512"
     );
 
-    const hmac = createHmac(JSON.stringify(envLines), key.toString());
+    // const hmac = createHmac(JSON.stringify(envLines), key.toString());
+    const hmac = createHmac(inputFile, key.toString());
 
     // 32 because hex. (16 bytes)
     const iv = Buffer.from(hmac.slice(0, 32), "hex");
@@ -308,10 +309,8 @@ function decryptEnvFile(
         }
     }
 
-    const calculatedHmac = createHmac(
-        JSON.stringify(decryptedEnvLines),
-        key.toString()
-    );
+    // const calculatedHmac = createHmac(JSON.stringify(decryptedEnvLines), key.toString());
+    const calculatedHmac = createHmac(outputFile || inputFile.slice(0, -4), key.toString());
     if (hmac !== calculatedHmac) {
         throw new Error("Incorrect password provided.");
     }
