@@ -31,5 +31,7 @@
     "*.ts",
     "tests/*.ts",
     "tests/*.js",
+    "bin/*.js",
+    "bin/*.js",
   ]
 }
