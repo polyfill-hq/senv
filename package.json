@@ -3,9 +3,6 @@
   "version": "3.0.0",
   "description": "A simple CLI tool for encrypting and decrypting .env files",
   "main": "index.js",
-  "publishConfig": {
-    "registry": "https://www.npmjs.com/package/@polyfillhq/senv"
-  },
   "repository": "https://github.com/polyfill-hq/senv",
   "author": "Polyfill",
   "license": "MIT",
@@ -16,10 +13,10 @@
     "coverage": "jest --coverage ."
   },
   "dependencies": {
-    "commander": "^10.0.0"
+    "commander": "10.0.0"
   },
   "devDependencies": {
-    "jest": "^29.5.0",
+    "jest": "29.5.0",
     "@polyfillhq/eslint-config": "2.0.6"
   },
   "keywords": [
