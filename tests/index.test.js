@@ -1,6 +1,7 @@
-const senv = require("../index");
 const crypto = require("crypto");
 const { writeFileSync, rmSync, existsSync } = require("fs");
+
+const senv = require("../index");
 
 const TMPDIR = "";
 
@@ -222,9 +223,7 @@ test("decrypting env throws error when password is incorrect", () => {
     writeFileSync(envVarPath, EXAMPLE_ENV_FILE);
 
     senv.encryptEnvFile(envVarPath, encryptedEnvVarPath, "password");
-    expect(() =>
-        senv.decryptEnvFile(encryptedEnvVarPath, null, "wrongpassword")
-    ).toThrow("Incorrect password provided.");
+    expect(() => senv.decryptEnvFile(encryptedEnvVarPath, null, "wrongpassword")).toThrow("Incorrect password provided.");
 
     rmSync(envVarPath);
     rmSync(encryptedEnvVarPath);
@@ -243,7 +242,7 @@ test("decrypting env throws error when salt cannot be found", () => {
 
 test("decrypting env throws error when HMAC cannot be found", () => {
     const envVarPath = `${TMPDIR}.env.test4`;
-    writeFileSync(envVarPath, EXAMPLE_ENV_FILE + "\nSENV_SALT=1234");
+    writeFileSync(envVarPath, `${EXAMPLE_ENV_FILE}\nSENV_SALT=1234`);
 
     expect(() => senv.decryptEnvFile(envVarPath, null, "password")).toThrow(
         "Could not find SENV_AUTHENTICATION in encrypted file."

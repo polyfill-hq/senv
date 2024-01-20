@@ -1,0 +1,23 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "editor.tabSize": 2,
+    "eslint.alwaysShowStatus": true,
+    "eslint.enable": true,
+    "eslint.lintTask.enable": true,
+    "eslint.run": "onSave",
+    "files.exclude": {
+        "dist/": false
+    },
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "css.validate": false,
+    "less.validate": false,
+    "scss.validate": false,
+    "cSpell.words": [
+        "airbnb",
+        "polyfillhq"
+    ],
+}

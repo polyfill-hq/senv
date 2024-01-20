@@ -20,7 +20,7 @@ function parseEnv(str, EOL) {
     for (const line of lines) {
         const match = line.match(/^([^=:#]+?)[=:](.*)/);
         let key = line;
-        let value = undefined;
+        let value;
         if (match) {
             key = match[1].trim();
             value = match[2].trim().replace(/['"]+/g, "");
@@ -38,8 +38,7 @@ function parseEnv(str, EOL) {
 function stringifyEnv(lines, EOL) {
     let result = "";
     lines.forEach(([key, value], idx) => {
-        const line =
-            typeof value === "undefined" ? key : `${key}=${String(value)}`;
+        const line = typeof value === "undefined" ? key : `${key}=${String(value)}`;
         result += line + (idx !== lines.length - 1 ? EOL : "");
     });
     return result;
@@ -189,7 +188,7 @@ function getPasswordFromEnvironment(fileName) {
  */
 function encryptEnvFile(
     inputFile,
-    outputFile = inputFile + ".enc",
+    outputFile = `${inputFile}.enc`,
     password,
     returnContent = false
 ) {
@@ -238,9 +237,8 @@ function encryptEnvFile(
 
     if (returnContent) {
         return encryptedEnvVariables;
-    } else {
-        return `Encrypted file successfully written to ${outputFile}`;
     }
+    return `Encrypted file successfully written to ${outputFile}`;
 }
 
 /**
@@ -294,8 +292,8 @@ function decryptEnvFile(
     const decryptedEnvLines = [];
     for (const [variableName, value] of envLines) {
         if (
-            variableName === AUTHENTICATION_SALT ||
-            variableName === AUTHENTICATION_KEY
+            variableName === AUTHENTICATION_SALT
+            || variableName === AUTHENTICATION_KEY
         ) {
             continue;
         }
@@ -321,9 +319,8 @@ function decryptEnvFile(
 
     if (returnContent) {
         return decryptedEnvVariables;
-    } else {
-        return `Decrypted file successfully written to ${outputFile}`;
     }
+    return `Decrypted file successfully written to ${outputFile}`;
 }
 
 module.exports = {

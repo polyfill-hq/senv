@@ -1,16 +1,17 @@
 {
-  "name": "@ens-vision-pte-ltd/senv",
+  "name": "@polyfill/senv",
   "version": "2.0.2",
   "description": "A simple CLI tool for encrypting and decrypting .env files",
   "main": "index.js",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/@ens-vision-pte-ltd"
+    "registry": "https://www.npmjs.com/package/@polyfillhq/senv"
   },
-  "repository": "https://github.com/ENS-Vision-PTE-LTD/senv",
-  "author": "Octexor",
+  "repository": "https://github.com/polyfill-hq/senv",
+  "author": "Polyfill",
   "license": "MIT",
   "bin": "./bin/senv",
   "scripts": {
+    "lint": "eslint .",
     "test": "jest .",
     "coverage": "jest --coverage ."
   },
@@ -19,7 +20,7 @@
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "prettier": "^2.8.4"
+    "@polyfillhq/eslint-config": "2.0.6"
   },
   "keywords": [
     "dotenv",
