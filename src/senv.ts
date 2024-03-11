@@ -1,5 +1,10 @@
-const crypto = require("crypto");
-const { writeFileSync, readFileSync, existsSync } = require("fs");
+import {
+    BinaryLike,
+    createHmac as _createHmac, createCipheriv, createDecipheriv, pbkdf2Sync
+} from "crypto";
+import {
+    existsSync, readFileSync, writeFileSync
+} from "fs";
 
 const ENCRYPTION_ALGORITHM = "aes-256-ctr";
 const HMAC_ALGORITHM = "sha256";
@@ -14,7 +19,7 @@ const PBKDF2_ITERATION_COUNT_STRING = 50000;
  * @param {string} str - The string to be parsed.
  * @param {string} EOL - The line break character of the string.
  */
-function parseEnv(str, EOL) {
+function parseEnv(str: { toString: () => string; }, EOL: string): string[][] {
     const parsedLines = [];
     const lines = str.toString().split(EOL);
     for (const line of lines) {
@@ -35,9 +40,9 @@ function parseEnv(str, EOL) {
  * @param {Array} lines - The array of lines to be stringified.
  * @param {string} EOL - The line break character of the string.
  */
-function stringifyEnv(lines, EOL) {
+function stringifyEnv(lines: string[][], EOL: string): string {
     let result = "";
-    lines.forEach(([key, value], idx) => {
+    lines.forEach(([key, value]: any, idx: number) => {
         const line = typeof value === "undefined" ? key : `${key}=${String(value)}`;
         result += line + (idx !== lines.length - 1 ? EOL : "");
     });
@@ -48,7 +53,7 @@ function stringifyEnv(lines, EOL) {
  * Get the line break character of a string
  * @param string
  */
-function getLineBreakChar(string) {
+function getLineBreakChar(string: string | string[]): "\n" | "\r" | "\r\n" {
     const indexOfLF = string.indexOf("\n", 1);
     if (indexOfLF === -1) {
         if (string.indexOf("\r") !== -1) return "\r";
@@ -65,9 +70,9 @@ function getLineBreakChar(string) {
  * @param {Buffer} iv - The IV with which to encrypt the string.
  * @param {string=} name - the name of the variable
  */
-function encryptString(string, key, iv, name = "") {
+function encryptString(string: string, key: BinaryLike, iv: BinaryLike, name = ""): string {
     if (typeof key === "string") {
-        key = crypto.pbkdf2Sync(
+        key = pbkdf2Sync(
             key,
             iv,
             PBKDF2_ITERATION_COUNT_STRING,
@@ -80,7 +85,7 @@ function encryptString(string, key, iv, name = "") {
         iv = Buffer.from(createHmac(iv.toString(), name).slice(0, 32), "hex");
     }
 
-    const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
+    const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
     let encrypted = cipher.update(string, "utf8", "hex");
     encrypted += cipher.final("hex");
 
@@ -94,9 +99,9 @@ function encryptString(string, key, iv, name = "") {
  * @param {Buffer} iv - The IV with which to encrypt the string.
  * @param {string=} name - the name of the variable
  */
-function decryptString(string, key, iv, name = "") {
+function decryptString(string: string, key: BinaryLike, iv: BinaryLike, name = ""): string {
     if (typeof key === "string") {
-        key = crypto.pbkdf2Sync(
+        key = pbkdf2Sync(
             key,
             iv,
             PBKDF2_ITERATION_COUNT_STRING,
@@ -109,7 +114,7 @@ function decryptString(string, key, iv, name = "") {
         iv = Buffer.from(createHmac(iv.toString(), name).slice(0, 32), "hex");
     }
 
-    const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
+    const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
     let decrypted = decipher.update(string, "hex", "utf8");
     decrypted += decipher.final("utf8");
 
@@ -123,8 +128,8 @@ function decryptString(string, key, iv, name = "") {
  *
  * @returns {string}  - The created HMAC.
  */
-function createHmac(string, password) {
-    const hmac = crypto.createHmac(HMAC_ALGORITHM, password);
+function createHmac(string: BinaryLike, password: BinaryLike): string {
+    const hmac = _createHmac(HMAC_ALGORITHM, password);
     hmac.update(string);
     return hmac.digest("hex");
 }
@@ -134,7 +139,7 @@ function createHmac(string, password) {
  * @param {string} fileName - The file name to convert
  * @returns {string}  - the corresponding password file name
  */
-function getPasswordFromEnvironment(fileName) {
+function getPasswordFromEnvironment(fileName: string): string {
     // Get password for individual .env file from environment variable
     const individualPasswordEnvVarName = fileName
         .replace(".encrypted", "") // ignore encrypted filename part
@@ -145,7 +150,7 @@ function getPasswordFromEnvironment(fileName) {
         .toUpperCase();
 
     if (process.env[individualPasswordEnvVarName]) {
-        return process.env[individualPasswordEnvVarName];
+        return process.env[individualPasswordEnvVarName]!;
     }
 
     // Get password for individual .env file from password file
@@ -187,11 +192,11 @@ function getPasswordFromEnvironment(fileName) {
  *                               returned as a string, otherwise returns success message.
  */
 function encryptEnvFile(
-    inputFile,
+    inputFile: string,
     outputFile = `${inputFile}.enc`,
-    password,
+    password: BinaryLike | undefined,
     returnContent = false
-) {
+): string {
     if (!password) {
         password = getPasswordFromEnvironment(inputFile);
     }
@@ -202,7 +207,7 @@ function encryptEnvFile(
 
     // const salt = crypto.randomBytes(16).toString("hex");
     const salt = createHmac(inputFile, password).slice(0, 32);
-    const key = crypto.pbkdf2Sync(
+    const key = pbkdf2Sync(
         password,
         salt,
         PBKDF2_ITERATION_COUNT_FILE,
@@ -252,11 +257,11 @@ function encryptEnvFile(
  *                               returned as a string, otherwise returns success message.
  */
 function decryptEnvFile(
-    inputFile,
+    inputFile: string,
     outputFile = inputFile.slice(0, -4),
-    password,
+    password: BinaryLike | undefined,
     returnContent = false
-) {
+): string {
     if (!password) {
         password = getPasswordFromEnvironment(inputFile);
     }
@@ -271,7 +276,7 @@ function decryptEnvFile(
         );
     }
     const salt = saltLine[1];
-    const key = crypto.pbkdf2Sync(
+    const key = pbkdf2Sync(
         password,
         salt,
         PBKDF2_ITERATION_COUNT_FILE,
@@ -323,7 +328,7 @@ function decryptEnvFile(
     return `Decrypted file successfully written to ${outputFile}`;
 }
 
-module.exports = {
+export default {
     encryptEnvFile,
     decryptEnvFile,
     encryptString,

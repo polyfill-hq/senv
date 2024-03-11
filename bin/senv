@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const program = require('commander'),
-      package = require('../package.json'),
-      senv = require('../index');
+      package = require('./package.json'),
+      senv = require('./index');
 
 program
     .version(package.version, '-v, --version')

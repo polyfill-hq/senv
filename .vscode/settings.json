@@ -18,6 +18,7 @@
     "scss.validate": false,
     "cSpell.words": [
         "airbnb",
-        "polyfillhq"
+        "polyfillhq",
+        "senv"
     ],
 }

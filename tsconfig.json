@@ -28,10 +28,10 @@
   "include": [
     ".eslintrc.js",
     "*.js",
-    "*.ts",
+    "src/*.ts",
     "tests/*.ts",
     "tests/*.js",
     "bin/*.js",
-    "bin/*.js",
+    "bin/*.js", "src/index.ts",
   ]
 }

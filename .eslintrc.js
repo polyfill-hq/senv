@@ -11,5 +11,6 @@ module.exports = {
         "@typescript-eslint/quotes": ["error", "double"],
         "@typescript-eslint/comma-dangle": "off",
         "@typescript-eslint/default-param-last": "off",
+        "no-param-reassign": "off",
     },
 };
