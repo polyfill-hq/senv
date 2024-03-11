@@ -6,6 +6,7 @@ module.exports = {
     extends: [
         "@polyfillhq/eslint-config/node",
     ],
+
     rules: {
         "@typescript-eslint/indent": ["error", 4],
         "@typescript-eslint/quotes": ["error", "double"],
@@ -13,4 +14,7 @@ module.exports = {
         "@typescript-eslint/default-param-last": "off",
         "no-param-reassign": "off",
     },
+    ignore: [
+        "bin/senv",
+    ],
 };

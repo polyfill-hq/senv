@@ -20,18 +20,13 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": false,
-    "noEmit": true,
+    "noEmit": false,
+    "outDir": "bin",
     "jsx": "react-jsx",
     "strictNullChecks": true,
     "useDefineForClassFields": true
   },
   "include": [
-    ".eslintrc.js",
-    "*.js",
     "src/*.ts",
-    "tests/*.ts",
-    "tests/*.js",
-    "bin/*.js",
-    "bin/*.js", "src/index.ts",
   ]
 }

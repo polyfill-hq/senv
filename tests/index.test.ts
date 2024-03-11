@@ -29,7 +29,7 @@ test("encrypts/decrypts string successfully", () => {
 
 test("gets individual .env file password from env var", () => {
     const password = "password";
-    process.env.DOTENV_PROD_PASS = password;
+    process.env.DOTENV_PROD_PASS = password + '      ';
 
     expect(senv.getPasswordFromEnvironment(".env.prod")).toBe(password);
     expect(senv.getPasswordFromEnvironment(".env.prod.enc")).toBe(password);
