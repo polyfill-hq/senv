@@ -81,19 +81,18 @@ test("gets global .env file password from password file", () => {
     rmSync(path);
 });
 
-// test("encrypting env file fails without password", () => {
-//     expect(() => senv.encryptEnvFile("path", undefined)).toThrow();
-//     expect(() => senv.encryptEnvFile("path", null)).toThrow(
-//         "No password provided."
-//     );
-//     expect(() => senv.encryptEnvFile("path", "")).toThrow("password");
-// });
-//
-// test("decrypting env file fails without password", () => {
-//     expect(() => senv.decryptEnvFile("path", undefined)).toThrow("password");
-//     expect(() => senv.decryptEnvFile("path", null)).toThrow("password");
-//     expect(() => senv.decryptEnvFile("path", "")).toThrow("password");
-// });
+test("encrypting env file fails without password", () => {
+    expect(() => senv.encryptEnvFile("path", undefined, undefined)).toThrow();
+    expect(() => senv.encryptEnvFile("path", undefined, undefined)).toThrow(
+        "No password provided."
+    );
+    expect(() => senv.encryptEnvFile("path", "", undefined)).toThrow("password");
+});
+test("decrypting env file fails without password", () => {
+    expect(() => senv.decryptEnvFile("path", undefined, undefined)).toThrow("password");
+    expect(() => senv.decryptEnvFile("path", undefined, undefined)).toThrow("password");
+    expect(() => senv.decryptEnvFile("path", "", undefined)).toThrow("password");
+});
 
 test("encrypted env file is written successfully", () => {
     const path = `${TMPDIR}.env.test1`;
