@@ -12,6 +12,7 @@ A simple CLI tool for encrypting and decrypting .env files.
 - 🔢 Supports multiple `.env` files for different environment configurations
 - 🎮 Supports encryption and decryption via CLI tool
 - 🚢 Easy to configure for use with a CI system
+- testing github settings
 
 
 ## Installation:
