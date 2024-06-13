@@ -1,1 +1,3 @@
 _extends: github-settings
+repository:
+  has_issues: true
